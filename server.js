@@ -34,6 +34,22 @@ app.get("/usuarios", (req, res) => {
             res.json(results);
         }
     });
+});
+
+app.post("/usuarios", (req, res) => {
+    const {nome, email, senha} = req.body;
+
+    const sql = "INSERT INTO Usuarios (nome, email, senha) VALUES (?, ?, ?)";
+    const values = [nome, email, senha];
+
+    connection.query(sql, values, (err, results) => {
+        if (err) {
+            res.status(500).send("Erro na consulta");
+        } else {
+            res.status(201);
+            res.json(results);
+        }
+    });
 })
 
 
