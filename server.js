@@ -67,6 +67,38 @@ app.post("/usuarios", async (req, res) => {
     } catch (err) {
         res.status(500).json({erro: "Erro no bcrypt"});
     }
+});
+
+app.post("/login", (req, res) => {
+    const {email, senha} = req.body;
+
+    if (!email || !senha) {
+        res.status(400).json({erro: "Email ou senha incorretos"});
+    }
+
+    const sql = "SELECT * FROM Usuarios WHERE email = ?";
+    const values = [email];
+    connection.query(sql, values, async (err, results) => {
+        if (err) {
+            return res.status(400).json({erro: "Login mal sucedido"})
+        }
+
+        if (results.length == 0) {
+            res.status(404).json({erro: "Email não encontrado"})
+        }
+
+        const usuario = results[0];
+
+        const isSenhaCorreta = await bcrypt.compare(senha, usuario.senha);
+
+        if (isSenhaCorreta) {
+            res.status(200);
+            res.json({data: "Usuário logado com sucesso"});
+        } else {
+            res.status(400);
+            res.json({data: "Usuário não foi logado"});
+        }
+    });
 })
 
 app.listen(port, () => { console.log("aplicação rodando na porta 5000") });
