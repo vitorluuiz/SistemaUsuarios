@@ -4,14 +4,15 @@ const port = 5000;
 const mysql = require("mysql2");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+require('dotenv').config();
 
 app.use(express.json());
 
 const connection = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "Norb@2025",
-    database: "SistemaUsuarios"
+    host: process.env.HOST,
+    user: process.env.USER,
+    password: process.env.PASSWORD,
+    database: process.env.DATABASE
 });
 
 // Try catch
@@ -33,7 +34,7 @@ function autenticarToken(req, res, next) {
         return res.status(401).json({ erro: "Usuário não autênticado" });
     }
 
-    jwt.verify(token, "meu-segredo", (erro, usuario) => {
+    jwt.verify(token, process.env.CHAVE_PRIVADA, (erro, usuario) => {
         if (erro) {
             res.status(400).json({ erro: "Seu token não é válido" });
         }
@@ -132,7 +133,7 @@ app.post("/login", (req, res) => {
         if (isSenhaCorreta) {
 
             const token = jwt.sign({ id: usuario.id, email: usuario.email },
-                "meu-segredo",
+                process.env.CHAVE_PRIMARIA,
                 { expiresIn: "1h" })
 
             res.status(200);
