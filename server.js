@@ -23,6 +23,25 @@ connection.connect((err) => {
     }
 });
 
+function autenticarToken(req, res, next) {
+    const authHeader = req.headers["authorization"];
+    // Bearer dawdkjajkwahfakwfhqoh2iorh2ir3ohwadadwadawdwad
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+        // Status code 401 = Não Autênticado
+        return res.status(401).json({ erro: "Usuário não autênticado" });
+    }
+
+    jwt.verify(token, "meu-segredo", (erro, usuario) => {
+        if (erro) {
+            res.status(400).json({ erro: "Seu token não é válido" });
+        }
+
+        next();
+    })
+};
+
 app.get("/usuarios", (req, res) => {
     connection.query("SELECT * FROM Usuarios", (err, results) => {
         if (err) {
@@ -68,6 +87,25 @@ app.post("/usuarios", async (req, res) => {
         res.status(500).json({ erro: "Erro no bcrypt" });
     }
 });
+
+app.post("/produtos", autenticarToken, async (req, res) => {
+    const { nome, preco, categoria } = req.body;
+
+    if (!nome || !preco || !categoria) {
+        return res.status(400).json({ erro: "As informações do produto estão incorretas" })
+    }
+
+    const sql = "INSERT INTO Produtos (nome, preco, categoria) VALUES (?, ?, ?);";
+    const values = [nome, preco, categoria];
+
+    connection.query(sql, values, (err, results) => {
+        if (err) {
+            res.status(400).json({ err })
+        }
+
+        res.status(201).json(results);
+    })
+})
 
 app.post("/login", (req, res) => {
     const { email, senha } = req.body;
