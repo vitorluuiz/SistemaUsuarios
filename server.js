@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const port = 5000;
 const mysql = require("mysql2");
-
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 app.use(express.json());
@@ -54,7 +54,7 @@ app.post("/usuarios", async (req, res) => {
 
         const sql = "INSERT INTO Usuarios (nome, email, senha) VALUES (?, ?, ?)";
         const values = [nome, email, hash];
-        
+
         connection.query(sql, values, (err, results) => {
             if (err) {
                 res.status(500).send("Erro na consulta");
@@ -65,26 +65,26 @@ app.post("/usuarios", async (req, res) => {
         });
 
     } catch (err) {
-        res.status(500).json({erro: "Erro no bcrypt"});
+        res.status(500).json({ erro: "Erro no bcrypt" });
     }
 });
 
 app.post("/login", (req, res) => {
-    const {email, senha} = req.body;
+    const { email, senha } = req.body;
 
     if (!email || !senha) {
-        res.status(400).json({erro: "Email ou senha incorretos"});
+        res.status(400).json({ erro: "Email ou senha incorretos" });
     }
 
     const sql = "SELECT * FROM Usuarios WHERE email = ?";
     const values = [email];
     connection.query(sql, values, async (err, results) => {
         if (err) {
-            return res.status(400).json({erro: "Login mal sucedido"})
+            return res.status(400).json({ erro: "Login mal sucedido" })
         }
 
         if (results.length == 0) {
-            res.status(404).json({erro: "Email não encontrado"})
+            res.status(404).json({ erro: "Email não encontrado" })
         }
 
         const usuario = results[0];
@@ -92,11 +92,16 @@ app.post("/login", (req, res) => {
         const isSenhaCorreta = await bcrypt.compare(senha, usuario.senha);
 
         if (isSenhaCorreta) {
+
+            const token = jwt.sign({ id: usuario.id, email: usuario.email },
+                "meu-segredo",
+                { expiresIn: "1h" })
+
             res.status(200);
-            res.json({data: "Usuário logado com sucesso"});
+            res.json({ data: "Usuário logado com sucesso", token });
         } else {
             res.status(400);
-            res.json({data: "Usuário não foi logado"});
+            res.json({ data: "Usuário não foi logado" });
         }
     });
 })
