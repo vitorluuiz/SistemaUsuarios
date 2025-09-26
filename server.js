@@ -4,8 +4,10 @@ const port = 5000;
 const mysql = require("mysql2");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const cors = require("cors");
 require('dotenv').config();
 
+app.use(cors());
 app.use(express.json());
 
 const connection = mysql.createConnection({
@@ -112,7 +114,7 @@ app.post("/login", (req, res) => {
     const { email, senha } = req.body;
 
     if (!email || !senha) {
-        res.status(400).json({ erro: "Email ou senha incorretos" });
+        return res.status(400).json({ erro: "Email ou senha incorretos" });
     }
 
     const sql = "SELECT * FROM Usuarios WHERE email = ?";
@@ -123,7 +125,7 @@ app.post("/login", (req, res) => {
         }
 
         if (results.length == 0) {
-            res.status(404).json({ erro: "Email não encontrado" })
+            return res.status(404).json({ erro: "Email não encontrado" })
         }
 
         const usuario = results[0];
@@ -131,16 +133,15 @@ app.post("/login", (req, res) => {
         const isSenhaCorreta = await bcrypt.compare(senha, usuario.senha);
 
         if (isSenhaCorreta) {
-
             const token = jwt.sign({ id: usuario.id, email: usuario.email },
-                process.env.CHAVE_PRIMARIA,
+                process.env.CHAVE_PRIVADA,
                 { expiresIn: "1h" })
 
             res.status(200);
-            res.json({ data: "Usuário logado com sucesso", token });
+            return res.json({ data: "Usuário logado com sucesso", token });
         } else {
             res.status(400);
-            res.json({ data: "Usuário não foi logado" });
+            return res.json({ data: "Usuário não foi logado" });
         }
     });
 })
