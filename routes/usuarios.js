@@ -1,8 +1,18 @@
 const express = require("express");
-const bcrypt = require("express");
+const mysql = require("mysql2");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const cors = require("cors");
+require('dotenv').config();
 
 const router = express.Router();
+
+const connection = mysql.createConnection({
+    host: process.env.HOST,
+    user: process.env.USER,
+    password: process.env.PASSWORD,
+    database: process.env.DATABASE
+});
 
 router.get("/", (req, res) => {
     connection.query("SELECT * FROM Usuarios", (err, results) => {

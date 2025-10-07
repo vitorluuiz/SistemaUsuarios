@@ -5,6 +5,8 @@ const bcrypt = require("bcrypt");
 const cors = require("cors");
 require('dotenv').config();
 
+const usuariosRouter = require("./routes/usuarios.js");
+
 const app = express();
 const port = 5000;
 
