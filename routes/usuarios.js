@@ -3,6 +3,7 @@ const mysql = require("mysql2");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const cors = require("cors");
+const connectDB = require("../firestore");
 require('dotenv').config();
 
 const router = express.Router();
@@ -12,6 +13,12 @@ const connection = mysql.createConnection({
     user: process.env.USER,
     password: process.env.PASSWORD,
     database: process.env.DATABASE
+});
+
+let db;
+
+connectDB().then(database => {
+    db = database;
 });
 
 router.get("/", (req, res) => {
@@ -34,7 +41,6 @@ router.post("/", async (req, res) => {
     }
 
     try {
-
         const saltRounds = 8;
         const hash = await bcrypt.hash(senha, saltRounds);
 
@@ -45,6 +51,9 @@ router.post("/", async (req, res) => {
             if (err) {
                 res.status(500).send("Erro na consulta");
             } else {
+                // Cadastrar log
+                db.collection("log").insertOne({ _id: 2, data: new Date()})
+
                 res.status(201);
                 res.json(results);
             }
