@@ -52,7 +52,17 @@ router.post("/", async (req, res) => {
                 res.status(500).send("Erro na consulta");
             } else {
                 // Cadastrar log
-                db.collection("log").insertOne({ _id: 2, data: new Date()})
+                function setLog(ação, responsável) {
+                    db.collection("log").insertOne(
+                        {
+                            ação,
+                            responsável,
+                            data: new Date()
+                        }
+                    )
+                }
+
+                setLog("Cadastro de usuário", email)
 
                 res.status(201);
                 res.json(results);
